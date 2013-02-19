@@ -23,6 +23,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configured;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +34,11 @@ import com.cloudera.flume.core.EventSink;
 import com.cloudera.util.Pair;
 import com.google.common.base.Preconditions;
 
+import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
+
 
 
 /**
@@ -49,13 +52,18 @@ public class HelloWorldSink extends EventSink.Base {
   private EPStatement statement = null;
   private ApacheEntity entity;
   private SinkListener listener;
+  private Configuration conf;
   
   
   @Override
   public void open() throws IOException {
     // Initialized the sink
     pw = new PrintWriter(new FileWriter("helloworld.txt"));
-    epService = EPServiceProviderManager.getDefaultProvider();
+    
+    conf = new Configuration();
+    conf.addEventType("ApacheEntity",ApacheEntity.class.getName());
+    conf.addImport("helloworld.ApacheEntity");
+    epService = EPServiceProviderManager.getDefaultProvider(conf);
     
     queryExpression = "select ip,date,method,url,protocol from ApacheEntity";
     statement = epService.getEPAdministrator().createEPL(queryExpression);
