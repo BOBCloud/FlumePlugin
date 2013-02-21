@@ -65,7 +65,12 @@ public class HelloWorldSink extends EventSink.Base {
     conf.addImport("helloworld.ApacheEntity");
     epService = EPServiceProviderManager.getDefaultProvider(conf);
     
-    queryExpression = "select ip,date,method,url,protocol from ApacheEntity";
+    queryExpression = "select ip,date,method,url,protocol from ApacheEntity.win:time_batch(5 sec) " +
+    		"where (url = \"/cgi-bin/shop.cgi?page=../../../../../../../etc/passwd\") " +
+    		"or (url =\"/bin/admin.pl\") " +
+    		"or (url =\"/mobileadmin/bin/\") " +
+    		"or (url =\"/htdocs/../../../../../../../../../../../etc/passwd\") ";
+
     statement = epService.getEPAdministrator().createEPL(queryExpression);
     listener = new SinkListener();
     statement.addListener(listener);
