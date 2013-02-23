@@ -23,11 +23,16 @@
     </dependency>
     
     <dependency>
-	<groupId>com.espertech</groupId>
-	<artifactId>esper</artifactId>
-	<version>4.3.0</version>
-</dependency>
+		<groupId>com.espertech</groupId>
+		<artifactId>esper</artifactId>
+		<version>4.3.0</version>
+	</dependency>
     
+	<dependency>
+		<groupId>org.json</groupId>
+		<artifactId>json</artifactId>
+		<version>20070829</version>
+	</dependency>
 
   </dependencies>
 
