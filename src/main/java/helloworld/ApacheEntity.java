@@ -1,5 +1,9 @@
 package helloworld;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 
 public class ApacheEntity{
 
@@ -10,12 +14,18 @@ public class ApacheEntity{
 	{
 		String[] items = log.split(" ");
 		this.ip = items[0];
-		this.date = items[3] + items[4];
-		this.method = items[5];
+		SimpleDateFormat inFormat = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+		SimpleDateFormat outFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+		try {
+			this.date = outFormat.format(inFormat.parse(items[3] + " " + items[4]));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.method = items[5].replace("\"", "");
 		this.url = items[6];
 		this.protocol = items[7].replace("\"", "");
 		this.statucCode = Integer.parseInt(items[8]);
-		printItems();
 	}
 	
 	private void printItems(){

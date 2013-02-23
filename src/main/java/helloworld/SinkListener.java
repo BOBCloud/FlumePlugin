@@ -13,7 +13,9 @@ import com.espertech.esper.client.UpdateListener;
 public class SinkListener implements UpdateListener {
 
 	private SendMail mail = new SendMail();
-
+	private NetworkManager networkManager = NetworkManager.getInstance();
+	
+	
 	@Override
 	public void update(EventBean[] newBeans, EventBean[] oldBeans) {
 		// TODO Auto-generated method stub
@@ -53,6 +55,31 @@ public class SinkListener implements UpdateListener {
 				// Double>) bean.getUnderlying()) );
 				message = message + "\n" + "[" + today + "]   "
 						+ bean.getUnderlying();
+				
+				StringBuffer sb = new StringBuffer();
+				sb.append("type=").append("update").append("&");
+				String line = bean.getUnderlying().toString().replace("{","").replace("}", "");
+				String[] items;
+				items = line.split(",");
+				for(int i=0; i<items.length; i++){
+					String item = items[i];
+					String[] data = item.split("=");
+					String key = data[0].replace(" ", "");
+					String value = "";
+					if(data.length > 2){
+						for(int k=1; k<data.length; k++){
+							value += data[k];
+						}
+					}else{
+						value = data[1];
+					}
+					sb.append(key).append("=").append(value);
+					if(i != (items.length-1)){
+						sb.append("&");
+					}
+				}
+				System.out.println(sb.toString());
+				networkManager.POST("http://localhost/upload.php", sb.toString());
 			}
 
 		}

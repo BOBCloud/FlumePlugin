@@ -63,12 +63,13 @@ public class HelloWorldSink extends EventSink.Base {
   private SinkListener listener;
   private Configuration conf;
   private final String FILE_NAME = "rule.json";
+  private NetworkManager networkManager;
   
   @Override
   public void open() throws IOException {
     // Initialized the sink
     pw = new PrintWriter(new FileWriter("helloworld.txt"));
-    
+    networkManager = NetworkManager.getInstance();
     conf = new Configuration();
     conf.addEventType("ApacheEntity",ApacheEntity.class.getName());
     conf.addImport("helloworld.ApacheEntity");
@@ -139,6 +140,16 @@ public class HelloWorldSink extends EventSink.Base {
 	  
     entity = new ApacheEntity(new String(e.getBody()));
     
+    StringBuffer sb = new StringBuffer();
+    
+    sb.append("type=").append("append").append("&");
+    sb.append("url=").append(entity.getUrl()).append("&");
+    sb.append("method=").append(entity.getMethod()).append("&");
+    sb.append("status_code=").append(entity.getStatucCode()).append("&");
+    sb.append("protocol=").append(entity.getProtocol()).append("&");
+    sb.append("date=").append(entity.getDate()).append("&");
+    sb.append("ip=").append(entity.getIp()); 
+    networkManager.POST("http://localhost/upload.php", sb.toString());
 	epService.getEPRuntime().sendEvent(entity);
 	  
     // here we are assuming the body is a string
