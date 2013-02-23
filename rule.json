@@ -1,3 +1,4 @@
 {
-	"url": ["../", "etc/passwd"]
+	"url": ["../", "etc/passwd","/bin/cat","system(","<script>","</script>",".exe","/script","&lt","&gt"],
+	"statusCode" : ["403"]
 }
