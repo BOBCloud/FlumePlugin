@@ -17,13 +17,22 @@
  */
 package helloworld;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configured;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +62,7 @@ public class HelloWorldSink extends EventSink.Base {
   private ApacheEntity entity;
   private SinkListener listener;
   private Configuration conf;
-  
+  private final String FILE_NAME = "rule.json";
   
   @Override
   public void open() throws IOException {
@@ -65,18 +74,65 @@ public class HelloWorldSink extends EventSink.Base {
     conf.addImport("helloworld.ApacheEntity");
     epService = EPServiceProviderManager.getDefaultProvider(conf);
     
-    queryExpression = "select ip,date,method,url,protocol from ApacheEntity.win:time_batch(5 sec) " +
-    		"where (url = \"/cgi-bin/shop.cgi?page=../../../../../../../etc/passwd\") " +
-    		"or (url =\"/bin/admin.pl\") " +
-    		"or (url =\"/mobileadmin/bin/\") " +
-    		"or (url =\"/htdocs/../../../../../../../../../../../etc/passwd\") ";
-
+    queryExpression = getQuery();
     statement = epService.getEPAdministrator().createEPL(queryExpression);
     listener = new SinkListener();
     statement.addListener(listener);
     
   }
 
+  private String getQuery(){
+		String queryBase = "select ip,date,method,url,protocol from ApacheEntity.win:time_batch(10 sec) where";
+		StringBuilder query = new StringBuilder();
+		try {
+			JSONObject roles = new JSONObject(getRoleFileData());
+			Iterator<?> keys = roles.keys();
+			while(keys.hasNext()){
+				String key = keys.next().toString();
+				JSONArray role = roles.getJSONArray(key);
+				for(int i = 0; i < role.length(); i++){
+					query.append(" (" + key + " like '%" + role.getString(i) + "%') ");
+					if((role.length()-1) != i){
+						query.append("or");
+					}
+				}
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		queryBase  = queryBase + query.toString();
+		return queryBase;
+	}
+
+	private String getRoleFileData() {
+		String data = null;
+		FileInputStream fis = null;
+		BufferedReader br = null;
+		try {
+			fis = new FileInputStream(FILE_NAME);
+			br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+			data = fileReader(br);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return data;
+	}
+
+	private String fileReader(BufferedReader br) {
+		StringBuffer resultData = new StringBuffer();
+		try {
+			String data = null;
+			while ((data = br.readLine()) != null) {
+				resultData.append(data);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return resultData.toString();
+	}
+	
   @Override
   public void append(Event e) throws IOException {
     // append the event to the output
